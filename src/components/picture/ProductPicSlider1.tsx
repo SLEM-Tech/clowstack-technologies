@@ -3,10 +3,10 @@ import React, { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Scrollbar, A11y } from "swiper/modules";
 // Import Swiper styles
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import "swiper/css/scrollbar";
+import "swiper/swiper.css";
+import "swiper/modules/navigation.css";
+import "swiper/modules/pagination.css";
+import "swiper/modules/scrollbar.css";
 import Picture from "./Picture";
 
 interface productPicSlider1Props {

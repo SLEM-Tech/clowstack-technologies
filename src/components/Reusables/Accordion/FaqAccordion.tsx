@@ -113,7 +113,7 @@ const faqItems: FaqAccordionItemProps[] = [
 
 const FaqAccordion: React.FC = () => {
 	return (
-		<section className='min-h-screen px-2 xs:px-8 sm:px-16 md:px-32 pt-6 sm:pt-8 pb-6 sm:pb-8 xl:pb-0 xl:pt-10 overflow-hidden'>
+		<section className='max-h-screen px-2 xs:px-8 sm:px-16 md:px-32 pt-6 sm:pt-8 pb-6 sm:pb-8 xl:pb-0 xl:pt-10 overflow-hidden'>
 			<div className='grid gap-6 mb-12 lg:px-16'>
 				{faqItems.map((item) => (
 					<FaqAccordionItem

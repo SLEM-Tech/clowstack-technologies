@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Quicksand } from "next/font/google";
 
 // Styles
-import "swiper/css";
-import "swiper/css/pagination";
-import "swiper/css/navigation";
+import "swiper/swiper.css";
+import "swiper/modules/pagination.css";
+import "swiper/modules/navigation.css";
 import "react-toastify/dist/ReactToastify.css";
 import "rc-drawer/assets/index.css";
 import "@styles/globals.css";
