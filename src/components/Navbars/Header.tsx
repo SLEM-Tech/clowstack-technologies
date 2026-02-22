@@ -8,7 +8,6 @@ import Drawer from "rc-drawer";
 import { useCustomer } from "../lib/woocommerce";
 import { currencyOptions, filterCustomersByEmail } from "@constants";
 import { getFirstCharacter, signOut } from "@utils/lib";
-import { LogoImage } from "@utils/function";
 import Picture from "../picture/Picture";
 import { APICall } from "@utils";
 import { fetchExchangeRate } from "@utils/endpoints";
@@ -16,7 +15,6 @@ import { setBaseCurrency, setExchangeRate } from "../Redux/Currency";
 import FormToast from "../Reusables/Toast/SigninToast";
 import useToken from "../hooks/useToken";
 
-// Headless UI Components
 import { Menu, Transition } from "@headlessui/react";
 import {
 	FiSearch,
@@ -24,8 +22,8 @@ import {
 	FiUser,
 	FiLogOut,
 	FiMenu,
-	FiSettings,
 	FiShoppingCart,
+	FiHeart,
 } from "react-icons/fi";
 import { SlArrowDown } from "react-icons/sl";
 import Flag from "react-world-flags";
@@ -34,9 +32,8 @@ import MobileNav from "./MobileNav";
 import ProductTable from "../Tables/ProductTable";
 import CategoryPageBottomHeader from "./CategoryPageBottomHeader";
 import ProductPageBottomHeader from "./ProductPageBottomHeader";
-import HomePageBottomHeader from "./HomePageBottomHeader";
-import { FaCartArrowDown } from "@node_modules/react-icons/fa";
-import { BiUser } from "@node_modules/react-icons/bi";
+import { FaCartArrowDown, FaFire, FaPhoneAlt } from "react-icons/fa";
+import { BiUser, BiTransfer } from "react-icons/bi";
 import { ImSpinner2 } from "@node_modules/react-icons/im";
 
 const Header = () => {
@@ -65,7 +62,6 @@ const Header = () => {
 	const handleCurrencyChange = async (code: string) => {
 		const selectedObj = currencyOptions.find((c) => c.code === code);
 		if (!selectedObj) return;
-
 		try {
 			const data = await APICall(fetchExchangeRate, ["NGN", code], true, true);
 			if (data) {
@@ -80,19 +76,13 @@ const Header = () => {
 
 	const handleSearch = () => {
 		if (!searchValue) return;
-
 		startTransition(() => {
 			router.push(`/search?${searchValue}`);
 		});
 	};
 
 	const userDropDownLinks = [
-		{
-			id: 1,
-			href: "/user/dashboard",
-			icon: <BiUser />,
-			label: "My Account",
-		},
+		{ id: 1, href: "/user/dashboard", icon: <BiUser />, label: "My Account" },
 		{
 			id: 2,
 			href: "/user/my-orders",
@@ -102,47 +92,76 @@ const Header = () => {
 		{ id: 3, onClick: onOpenCart, icon: <FiShoppingCart />, label: "Cart" },
 	];
 
+	const isOnCategoryPage = pathname.includes("/category");
+	const isOnProductPage = pathname.includes("/home-item");
+	const isOnHomePage = !isOnCategoryPage && !isOnProductPage;
+
+	const bottomNavLinks = [
+		{ href: "/", text: "Home" },
+		{ href: "/about", text: "About" },
+		{ href: "/category", text: "Shop" },
+		{ href: "/contact-us", text: "Contact" },
+	];
+
 	return (
 		<>
-			<header className='flex flex-col w-full bg-[#050505] z-[100] fixed top-0 border-b border-white/5 shadow-2xl transition-all'>
-				{/* Desktop Header */}
-				<div className='hidden slg:grid grid-cols-10 items-center justify-between w-full py-3 max-w-[1440px] px-8 mx-auto'>
-					{/* 1. Logo */}
-					<div className='col-span-2'>
-						<LogoImage className='!w-[35px] cursor-pointer brightness-200' />
+			<header className='flex flex-col w-full z-[100] fixed top-0 shadow-sm transition-all'>
+				{/* ── TOP UTILITY BAR (desktop only) ── */}
+				<div className='hidden slg:flex items-center justify-between bg-white border-b border-gray-200 px-8 py-1.5 text-xs text-gray-500'>
+					{/* Left quick links */}
+					<div className='flex items-center divide-x divide-gray-200'>
+						{[
+							
+							{ label: "My Account", href: "/user/dashboard" },
+							{ label: "Wishlist", href: "/user/my-orders" },
+						].map((item) => (
+							<Link
+								key={item.label}
+								href={item.href}
+								className='px-3 first:pl-0 hover:text-shop transition-colors'
+							>
+								{item.label}
+							</Link>
+						))}
 					</div>
 
-					{/* 2. Search Bar */}
-					<div className='col-span-6 flex justify-center px-12'>
-						<div className='relative w-full max-w-[550px] group'>
-							<FiSearch className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-500 transition-colors' />
-							<input
-								type='text'
-								placeholder='Search hardware, accessories...'
-								className='w-full h-11 text-sm text-white rounded-full pl-12 pr-5 border border-white/10 outline-none focus:border-blue-500/50 transition bg-[#111111]'
-								onChange={(e) => setSearchValue(e.target.value)}
-								onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-							/>
-						</div>
-					</div>
+					{/* Center promo banner */}
+					<span className='text-orange-500 font-medium hidden md:block'>
+						110% Secure delivery without contacting the counter
+					</span>
 
-					{/* 3. Controls */}
-					<div className='col-span-2 flex items-center justify-end gap-6'>
-						{/* STABLE CURRENCY DROPDOWN */}
+					{/* Right: help + language + currency */}
+					<div className='flex items-center gap-3'>
+						<span>
+							Need help?{" "}
+							<a
+								href='tel:+23400980122'
+								className='font-semibold text-gray-800 hover:text-shop transition-colors'
+							>
+								+23400980122
+							</a>
+						</span>
+						<span className='text-gray-300'>|</span>
+						<span className='cursor-pointer hover:text-shop transition-colors'>
+							English
+						</span>
+						<span className='text-gray-300'>|</span>
+
+						{/* Currency Dropdown */}
 						<Menu as='div' className='relative inline-block text-left'>
 							{({ open }) => (
 								<>
-									<Menu.Button className='flex items-center gap-2 bg-[#111111] border border-white/10 px-3 py-2 rounded-xl cursor-pointer hover:bg-white/5 transition group outline-none'>
+									<Menu.Button className='flex items-center gap-1 cursor-pointer hover:text-shop outline-none transition-colors'>
 										{/* @ts-ignore */}
 										<Flag
 											code={baseCurrency?.countryCode || "NG"}
 											className='w-4 rounded-sm'
 										/>
-										<span className='text-xs font-bold text-gray-200 uppercase'>
+										<span className='font-semibold uppercase'>
 											{baseCurrency.code}
 										</span>
 										<SlArrowDown
-											className={`text-[8px] text-gray-500 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+											className={`text-[8px] transition-transform duration-200 ${open ? "rotate-180" : ""}`}
 										/>
 									</Menu.Button>
 
@@ -155,17 +174,13 @@ const Header = () => {
 										leaveFrom='transform opacity-100 scale-100'
 										leaveTo='transform opacity-0 scale-95'
 									>
-										<Menu.Items className='absolute right-0 mt-2 w-36 origin-top-right bg-[#111111] border border-white/10 rounded-2xl shadow-2xl p-1 z-[110] outline-none'>
+										<Menu.Items className='absolute right-0 mt-2 w-36 origin-top-right bg-white border border-gray-100 rounded-xl shadow-lg p-1 z-[110] outline-none'>
 											{currencyOptions.map((c) => (
 												<Menu.Item key={c.code}>
 													{({ active }) => (
 														<button
 															onClick={() => handleCurrencyChange(c.code)}
-															className={`${
-																active
-																	? "bg-white/5 text-white"
-																	: "text-gray-400"
-															} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-medium transition-colors`}
+															className={`${active ? "bg-gray-50 text-gray-900" : "text-gray-600"} flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-colors`}
 														>
 															{/* @ts-ignore */}
 															<Flag code={c.countryCode} className='w-4' />
@@ -179,56 +194,111 @@ const Header = () => {
 								</>
 							)}
 						</Menu>
+					</div>
+				</div>
 
-						{/* Cart */}
-						<div className='relative cursor-pointer group' onClick={onOpenCart}>
-							<FiShoppingBag className='text-2xl text-gray-300 group-hover:text-blue-500 transition' />
-							{totalItems > 0 && (
-								<span className='absolute -top-1.5 -right-1.5 size-5 bg-blue-600 text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-black'>
-									{totalItems}
-								</span>
-							)}
+				{/* ── MAIN HEADER (desktop) ── */}
+				<div className='hidden slg:flex items-center bg-white border-b border-gray-100 w-full'>
+					<div className='max-w-[1440px] mx-auto w-full flex items-center gap-6 px-8 py-3'>
+						{/* Logo */}
+						<Link
+							href='/'
+							className='flex-shrink-0 w-36 text-2xl font-black text-gray-900 tracking-tight'
+						>
+							<span className='text-shop'>C</span>lowStack
+						</Link>
+
+						{/* Search bar */}
+						<div className='flex flex-1'>
+							<input
+								type='text'
+								placeholder='Search for products...'
+								className='flex-1 h-10 text-sm border border-gray-300 border-r-0 rounded-l-sm px-4 outline-none focus:border-shop transition-colors bg-white'
+								onChange={(e) => setSearchValue(e.target.value)}
+								onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+							/>
+							<button
+								onClick={handleSearch}
+								className='bg-shop text-white px-6 h-10 text-sm font-medium rounded-r-sm hover:bg-shop-dark transition-colors flex items-center gap-2 shrink-0'
+							>
+								<FiSearch className='text-base' />
+								Search
+							</button>
 						</div>
 
-						{/* STABLE USER DROPDOWN */}
-						<Menu as='div' className='relative inline-block text-left'>
-							{({ open }) => (
-								<>
-									<Menu.Button className='flex items-center gap-2 cursor-pointer group outline-none focus:ring-0'>
-										{wc_customer_info?.shipping?.address_2 ? (
-											<Picture
-												src={wc_customer_info.shipping.address_2}
-												alt='user'
-												className='size-9 rounded-full border border-white/10'
-											/>
-										) : (
-											<div className='size-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-xs'>
-												{getFirstCharacter(wc_customer_info?.first_name || "U")}
-											</div>
-										)}
-										<SlArrowDown
-											className={`text-[10px] text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-										/>
-									</Menu.Button>
+						{/* Action icons */}
+						<div className='flex items-center gap-6'>
+							{/* Compare */}
+							<button className='flex flex-col items-center gap-0.5 group cursor-pointer'>
+								<BiTransfer className='text-2xl text-gray-500 group-hover:text-shop transition-colors' />
+								<span className='text-[10px] text-gray-400 group-hover:text-shop transition-colors'>
+									Compare
+								</span>
+							</button>
 
-									<Transition
-										as={Fragment}
-										enter='transition ease-out duration-100'
-										enterFrom='transform opacity-0 scale-95'
-										enterTo='transform opacity-100 scale-100'
-										leave='transition ease-in duration-75'
-										leaveFrom='transform opacity-100 scale-100'
-										leaveTo='transform opacity-0 scale-95'
-									>
-										<Menu.Items className='absolute right-0 mt-2 w-52 origin-top-right bg-[#111111] border border-white/10 rounded-2xl shadow-2xl p-1.5 z-[110] outline-none'>
-											<div className='px-3 py-2 mb-1 border-b border-white/5'>
-												<p className='text-xs text-gray-500'>Logged in as</p>
-												<p className='text-sm font-bold text-white truncate'>
-													{wc_customer_info?.first_name}
-												</p>
-											</div>
+							{/* Wishlist */}
+							<button className='flex flex-col items-center gap-0.5 group cursor-pointer'>
+								<FiHeart className='text-2xl text-gray-500 group-hover:text-shop transition-colors' />
+								<span className='text-[10px] text-gray-400 group-hover:text-shop transition-colors'>
+									Wishlist
+								</span>
+							</button>
 
-											<div className='flex flex-col gap-0.5'>
+							{/* Cart */}
+							<button
+								onClick={onOpenCart}
+								className='flex flex-col items-center gap-0.5 group cursor-pointer'
+							>
+								<div className='relative'>
+									<FiShoppingBag className='text-2xl text-gray-500 group-hover:text-shop transition-colors' />
+									{totalItems > 0 && (
+										<span className='absolute -top-2 -right-2 size-4 bg-shop text-white text-[9px] font-black flex items-center justify-center rounded-full'>
+											{totalItems}
+										</span>
+									)}
+								</div>
+								<span className='text-[10px] text-gray-400 group-hover:text-shop transition-colors'>
+									Cart
+								</span>
+							</button>
+
+							{/* Account Dropdown */}
+							<Menu as='div' className='relative inline-block text-left'>
+								{({ open }) => (
+									<>
+										<Menu.Button className='flex flex-col items-center gap-0.5 group cursor-pointer outline-none'>
+											{wc_customer_info?.shipping?.address_2 ? (
+												<Picture
+													src={wc_customer_info.shipping.address_2}
+													alt='user'
+													className='size-7 rounded-full border border-gray-200'
+												/>
+											) : (
+												<FiUser className='text-2xl text-gray-500 group-hover:text-shop transition-colors' />
+											)}
+											<span className='text-[10px] text-gray-400 group-hover:text-shop transition-colors'>
+												Account
+											</span>
+										</Menu.Button>
+
+										<Transition
+											as={Fragment}
+											enter='transition ease-out duration-100'
+											enterFrom='transform opacity-0 scale-95'
+											enterTo='transform opacity-100 scale-100'
+											leave='transition ease-in duration-75'
+											leaveFrom='transform opacity-100 scale-100'
+											leaveTo='transform opacity-0 scale-95'
+										>
+											<Menu.Items className='absolute right-0 mt-2 w-52 origin-top-right bg-white border border-gray-100 rounded-2xl shadow-xl p-1.5 z-[110] outline-none'>
+												{wc_customer_info?.first_name && (
+													<div className='px-3 py-2 mb-1 border-b border-gray-100'>
+														<p className='text-xs text-gray-400'>Logged in as</p>
+														<p className='text-sm font-bold text-gray-900 truncate'>
+															{wc_customer_info.first_name}
+														</p>
+													</div>
+												)}
 												{userDropDownLinks.map((item) => (
 													<Menu.Item key={item.id}>
 														{({ active }) => (
@@ -241,94 +311,147 @@ const Header = () => {
 																		router.push(item.href);
 																	}
 																}}
-																className={`${
-																	active
-																		? "bg-white/5 text-white"
-																		: "text-gray-300"
-																} flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors`}
+																className={`${active ? "bg-gray-50 text-gray-900" : "text-gray-600"} flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors`}
 															>
-																<span className='text-lg'>{item.icon}</span>
+																<span>{item.icon}</span>
 																{item.label}
 															</button>
 														)}
 													</Menu.Item>
 												))}
-											</div>
-
-											<Menu.Item>
-												{({ active }) => (
-													<button
-														onClick={() => signOut()}
-														className={`${
-															active ? "bg-red-500/10" : ""
-														} flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-red-500 font-bold transition-colors mt-1`}
-													>
-														<FiLogOut /> Log Out
-													</button>
-												)}
-											</Menu.Item>
-										</Menu.Items>
-									</Transition>
-								</>
-							)}
-						</Menu>
+												<Menu.Item>
+													{({ active }) => (
+														<button
+															onClick={() => signOut()}
+															className={`${active ? "bg-red-50" : ""} flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-500 font-semibold transition-colors mt-0.5`}
+														>
+															<FiLogOut /> Log Out
+														</button>
+													)}
+												</Menu.Item>
+											</Menu.Items>
+										</Transition>
+									</>
+								)}
+							</Menu>
+						</div>
 					</div>
 				</div>
 
-				{/* Mobile Header (Hidden on Laptop) */}
-				<div className='slg:hidden flex flex-col w-full p-4 gap-3 bg-black'>
-					<div className='flex items-center justify-between'>
-						<div className='flex items-center gap-4'>
-							<FiMenu
-								className='text-2xl text-white'
-								onClick={() => setDrawerVisible(true)}
-							/>
-							<LogoImage className='!w-[30px] brightness-200' />
+				{/* ── BOTTOM NAV (desktop, home / about / contact pages) ── */}
+				{isOnHomePage && (
+					<nav className='hidden slg:flex items-center bg-[#1a1a1a] w-full'>
+						<div className='max-w-[1440px] mx-auto w-full flex items-center px-8 py-2 gap-6'>
+							{/* Browse All Categories */}
+							<Link
+								href='/category'
+								className='flex items-center gap-2 bg-shop text-white px-4 py-1.5 text-sm font-medium hover:bg-shop-dark transition-colors shrink-0'
+							>
+								<span className='text-base leading-none'>☰</span>
+								Browse All Categories
+								<SlArrowDown className='text-[9px]' />
+							</Link>
+
+							{/* Hot Deals */}
+							<Link
+								href='/category'
+								className='flex items-center gap-1.5 text-sm font-medium text-white hover:text-shop transition-colors shrink-0'
+							>
+								<FaFire className='text-orange-400' />
+								Hot Deals
+							</Link>
+
+							{/* Nav links */}
+							{bottomNavLinks.map((link) => (
+								<Link
+									key={link.href}
+									href={link.href}
+									className={`text-sm font-medium transition-colors ${
+										pathname === link.href
+											? "text-shop"
+											: "text-gray-300 hover:text-white"
+									}`}
+								>
+									{link.text}
+									{(link.text === "Home" || link.text === "Shop") && (
+										<SlArrowDown className='inline-block ml-0.5 text-[8px]' />
+									)}
+								</Link>
+							))}
+
+							<div className='flex-1' />
+
+							{/* Phone */}
+							<div className='flex items-center gap-2 text-white shrink-0'>
+								<div className='size-8 rounded-full bg-shop flex items-center justify-center'>
+									<FaPhoneAlt className='text-white text-sm' />
+								</div>
+								<div>
+									<p className='text-[10px] text-gray-400'>24/7 Support Center</p>
+									<p className='text-sm font-bold'>23400888123</p>
+								</div>
+							</div>
 						</div>
-						<div onClick={onOpenCart} className='relative'>
-							<FiShoppingBag className='text-2xl text-white' />
+					</nav>
+				)}
+
+				{/* Conditional sub-headers for category / product pages */}
+				{isOnCategoryPage && <CategoryPageBottomHeader />}
+				{isOnProductPage && <ProductPageBottomHeader />}
+
+				{/* ── MOBILE HEADER ── */}
+				<div className='slg:hidden flex flex-col w-full bg-white border-b border-gray-200'>
+					<div className='flex items-center justify-between p-4 pb-2'>
+						<div className='flex items-center gap-3'>
+							<button onClick={() => setDrawerVisible(true)}>
+								<FiMenu className='text-2xl text-gray-700' />
+							</button>
+							<Link
+								href='/'
+								className='text-xl font-black text-gray-900 tracking-tight'
+							>
+								<span className='text-shop'>C</span>lowStack
+							</Link>
+						</div>
+						<button onClick={onOpenCart} className='relative'>
+							<FiShoppingBag className='text-2xl text-gray-700' />
 							{totalItems > 0 && (
-								<span className='absolute -top-2 -right-2 size-4 bg-blue-600 rounded-full text-[9px] flex items-center justify-center text-white'>
+								<span className='absolute -top-2 -right-2 size-4 bg-shop rounded-full text-[9px] flex items-center justify-center text-white font-bold'>
 									{totalItems}
 								</span>
 							)}
-						</div>
+						</button>
 					</div>
-					<div className='relative h-10'>
+					<div className='flex px-4 pb-3'>
 						<input
 							type='text'
-							placeholder='Search items...'
-							className='w-full h-full text-sm bg-gray-100 rounded-lg px-4 border-none outline-none focus:ring-2 focus:ring-primary-100'
+							placeholder='Search for products...'
+							className='flex-1 h-10 text-sm border border-gray-300 border-r-0 rounded-l-sm px-4 outline-none focus:border-shop'
 							value={searchValue}
 							onChange={(e) => setSearchValue(e.target.value)}
 							onKeyDown={(e) => e.key === "Enter" && handleSearch()}
 						/>
-						{isPending ? (
-							<ImSpinner2 className='absolute right-3 top-1/3 text-primary-100 animate-spin' />
-						) : (
-							<FiSearch className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400' />
-						)}
+						<button
+							onClick={handleSearch}
+							className='bg-shop text-white px-4 h-10 text-sm font-medium rounded-r-sm hover:bg-shop-dark transition-colors flex items-center justify-center min-w-[70px]'
+						>
+							{isPending ? (
+								<ImSpinner2 className='animate-spin' />
+							) : (
+								"Search"
+							)}
+						</button>
 					</div>
 				</div>
-
-				{/* Conditional Bottom Headers */}
-				{pathname.includes("/category") ? (
-					<CategoryPageBottomHeader />
-				) : pathname.includes("/home-item") ? (
-					<ProductPageBottomHeader />
-				) : (
-					<HomePageBottomHeader />
-				)}
 			</header>
 
+			{/* Cart Drawer */}
 			<Drawer
 				open={isCartOpen}
 				onClose={onCloseCart}
 				placement='right'
 				width={
-					typeof window !== "undefined" && window.innerWidth > 768
-						? 500
-						: "100%"
+					typeof window !== "undefined" && window.innerWidth > 768 ? 500 : "100%"
 				}
 			>
 				<ProductTable onClose={onCloseCart} />

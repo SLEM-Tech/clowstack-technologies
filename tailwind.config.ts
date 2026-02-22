@@ -31,12 +31,19 @@ const config: Config = {
 				panel: "#FDFBFA", // The soft off-white/beige "Services" section
 				dark: "#0A0A0A", // For high-contrast text and footers
 
+				// Shop primary green – used for buttons, badges, highlights across all pages
+				shop: {
+					DEFAULT: "#3DBD7F",
+					dark: "#2ea86f",
+					light: "#e8f7f0",
+				},
+
 				primary: {
-					100: "#004B93", // Main Button Blue
-					200: "#003A72",
-					300: "#002D5B", // Deep Navy
-					400: "#001F3F",
-					DEFAULT: "#004B93",
+					100: "#3DBD7F", // Updated to shop green for consistency
+					200: "#2ea86f",
+					300: "#26905E",
+					400: "#1e7a4f",
+					DEFAULT: "#3DBD7F",
 				},
 
 				// Tech-focused Grays
@@ -65,9 +72,9 @@ const config: Config = {
 					dark: "#DC2626",
 				},
 
-				// Accents from the design
-				accent: "#004B93",
-				price: "#002D5B", // Deep navy for price text
+				// Accents
+				accent: "#3DBD7F",
+				price: "#1a1a1a", // Dark for price text
 				whatsapp: "#25D366",
 			},
 
@@ -96,10 +103,10 @@ const config: Config = {
 				light: {
 					colors: {
 						primary: {
-							DEFAULT: "#002D5B",
+							DEFAULT: "#3DBD7F",
 							foreground: "#FFFFFF",
 						},
-						focus: "#004B93",
+						focus: "#2ea86f",
 					},
 				},
 			},

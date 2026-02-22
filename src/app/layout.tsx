@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Quicksand } from "next/font/google";
 
 // Styles
 import "swiper/css";
@@ -13,10 +13,10 @@ import "@styles/globals.css";
 import AppProvider from "@src/components/config/AppProvider";
 import { SEODATA, SITE_NAME, SITE_URL } from "@constants/seoContants";
 
-const inter = Inter({
-	subsets: ["latin-ext"],
-	weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
-	display: "swap", // Professional standard for performance
+const quicksand = Quicksand({
+	subsets: ["latin"],
+	weight: ["300", "400", "500", "600", "700"],
+	display: "swap",
 });
 
 // 1. Professional Viewport Configuration
@@ -103,7 +103,7 @@ export default function RootLayout({
 	return (
 		<html lang='en' className='scroll-smooth'>
 			<body
-				className={`${inter.className} w-full min-h-screen antialiased bg-white text-slate-900`}
+				className={`${quicksand.className} w-full min-h-screen antialiased bg-white text-slate-900`}
 			>
 				<AppProvider>
 					{/* Main Content */}

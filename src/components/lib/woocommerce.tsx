@@ -4,6 +4,39 @@ import { WC_ConsumerKey, WC_consumerSecret, WC_URL } from "@utils/lib/data";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import { useMutation, useQuery } from "react-query";
 
+/* ─────────────────────────────────────────────
+   Persistent client-side cache (localStorage)
+   with a configurable TTL (default: 1 hour)
+───────────────────────────────────────────── */
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour in ms
+const CACHE_PREFIX = "__wc_cache_";
+
+export function cacheGet<T>(key: string): T | null {
+	try {
+		const raw = localStorage.getItem(CACHE_PREFIX + key);
+		if (!raw) return null;
+		const { data, expires } = JSON.parse(raw) as { data: T; expires: number };
+		if (Date.now() > expires) {
+			localStorage.removeItem(CACHE_PREFIX + key);
+			return null;
+		}
+		return data;
+	} catch {
+		return null;
+	}
+}
+
+export function cacheSet(key: string, data: unknown, ttl = CACHE_TTL) {
+	try {
+		localStorage.setItem(
+			CACHE_PREFIX + key,
+			JSON.stringify({ data, expires: Date.now() + ttl }),
+		);
+	} catch {
+		// Ignore (storage quota exceeded, SSR, etc.)
+	}
+}
+
 export const WooCommerce = new WooCommerceRestApi({
 	url: WC_URL, // Your store URL
 	consumerKey: WC_ConsumerKey, // Your consumer key
@@ -159,12 +192,16 @@ export const useGeneralSettings = () => {
 // };
 
 export const useCategories = (categoryId: string | undefined) => {
+	const cacheKey = `categories_${categoryId ?? "all"}`;
 	return useQuery(
 		["categories", categoryId],
 		async () => {
+			const cached = cacheGet<CategoryType[]>(cacheKey);
+			if (cached) return cached;
 			const response = await WooCommerce.get(
 				`products/categories/${categoryId}`,
 			);
+			cacheSet(cacheKey, response.data);
 			return response.data;
 		},
 		{
@@ -181,8 +218,12 @@ export const useCreateOrder = () => {
 };
 
 export const useProductsByCategory = (categoryId: string) => {
+	const cacheKey = `products_cat_${categoryId}`;
 	return useQuery(["category-products", categoryId], async () => {
+		const cached = cacheGet<ProductType[]>(cacheKey);
+		if (cached) return cached;
 		const response = await WooCommerce.get(`products?category=${categoryId}`);
+		cacheSet(cacheKey, response.data);
 		return response.data;
 	});
 };

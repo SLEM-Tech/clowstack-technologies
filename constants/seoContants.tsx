@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 
 // 1. Core Configuration Constants
-export const SITE_NAME = "Nestora Digital Innovations";
+export const SITE_NAME = "ClowStack Technologies Limited";
 export const SITE_URL =
-	process.env.NEXT_PUBLIC_SITE_URL || "https://nestora.digital"; // Update with actual URL
-export const TWITTER_HANDLE = "@NestoraDigital";
+	process.env.NEXT_PUBLIC_SITE_URL || "https://clowstack.com";
+export const TWITTER_HANDLE = "@ClowStack";
 
 interface SEOConfig {
 	title: string;
@@ -19,9 +19,9 @@ export const SEODATA: Record<string, SEOConfig> = {
 	default: {
 		title: `${SITE_NAME} | Empowering Businesses Through Technology`,
 		description:
-			"Nestora Digital Innovations Ltd provides cutting-edge software development, AI integration, and digital transformation strategies to scale modern enterprises.",
+			"ClowStack Technologies Limited provides cutting-edge software development, AI integration, and digital transformation strategies to scale modern enterprises.",
 		keywords: [
-			"Nestora Digital",
+			"ClowStack Digital",
 			"Software Development Nigeria",
 			"Digital Transformation",
 			"AI Solutions for Business",
@@ -34,7 +34,7 @@ export const SEODATA: Record<string, SEOConfig> = {
 	home: {
 		title: `${SITE_NAME} | Leading Digital Solutions & Tech Excellence`,
 		description:
-			"Innovate and grow with Nestora. We build high-performance digital products, from mobile apps to enterprise AI systems, tailored to your business needs.",
+			"Innovate and grow with ClowStack. We build high-performance digital products, from mobile apps to enterprise AI systems, tailored to your business needs.",
 		keywords: [
 			"Mobile App Development",
 			"Enterprise Software",
@@ -82,19 +82,19 @@ export const SEODATA: Record<string, SEOConfig> = {
 	login: {
 		title: `Client Portal Login | ${SITE_NAME}`,
 		description:
-			"Access your Nestora client dashboard to track project progress, manage subscriptions, and collaborate with your dev team.",
+			"Access your ClowStack client dashboard to track project progress, manage subscriptions, and collaborate with your dev team.",
 		keywords: [
 			"Client login",
 			"Project tracking portal",
-			"Nestora dashboard access",
+			"ClowStack dashboard access",
 		],
 	},
 	register: {
 		title: `Partner with Us | Join ${SITE_NAME}`,
 		description:
-			"Create an account to start your project journey with Nestora Digital Innovations and access premium tech resources.",
+			"Create an account to start your project journey with ClowStack Technologies and access premium tech resources.",
 		keywords: [
-			"Get started with Nestora",
+			"Get started with ClowStack",
 			"Project onboarding",
 			"Digital partnership",
 		],

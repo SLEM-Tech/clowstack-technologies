@@ -22,10 +22,12 @@ import heroImage3 from "./heroImage3.png";
 import heroImage4 from "./heroImage4.png";
 import heroBg from "./hero-bg.png";
 import machineImage from "./machine-image.png";
+import subscribeSection from "./subscribe-section.png";
 
 export {
 	banner,
 	machineImage,
+	subscribeSection,
 	heroBg,
 	heroImage2,
 	heroImage3,

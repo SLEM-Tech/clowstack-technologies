@@ -1,226 +1,203 @@
 "use client";
-import React from "react";
-import { motion } from "framer-motion";
-import FooterCard from "../Cards/FooterCard";
+import React, { useMemo } from "react";
 import Link from "next/link";
-import { ChatServiceIconSvg, FileIconSvg, RocketIconSvg } from "../SvgIcons";
-import useToken from "../hooks/useToken";
 import { signOut } from "@utils/lib";
 import { CompanyName, filterCustomersByEmail } from "@constants";
 import { useCustomer } from "../lib/woocommerce";
-import { LogoImage } from "@utils/function";
+import useToken from "../hooks/useToken";
 import { usePathname } from "next/navigation";
 import {
 	BiLogoFacebook,
-	BiLogoLinkedin,
-	BiLogoTiktok,
+	BiLogoInstagram,
+	BiLogoTwitter,
 	BiLogoWhatsapp,
-} from "@node_modules/react-icons/bi";
-
-interface footerDataProps {
-	title: string;
-	links: {
-		label: string;
-		href: string;
-		function?: () => void;
-	}[];
-}
+} from "react-icons/bi";
+import { FaHeadphones } from "react-icons/fa";
 
 const Footer = () => {
 	const { email } = useToken();
 	const currentYear = new Date().getFullYear();
 	const pathname = usePathname();
-	const { data: customer, isLoading, isError } = useCustomer("");
-	const wc_customer2_info: Woo_Customer_Type[] = customer;
-	const wc_customer_info: Woo_Customer_Type | undefined =
-		filterCustomersByEmail(wc_customer2_info, email);
+
+	const { data: customer } = useCustomer("");
+	const wc_customer_info: Woo_Customer_Type | undefined = useMemo(
+		() => filterCustomersByEmail(customer as Woo_Customer_Type[], email),
+		[customer, email],
+	);
+
 	const firstName = wc_customer_info?.first_name;
-	const footer1socialMediaIcons = [
-		{
-			id: 1,
-			icon: <BiLogoTiktok className='text-2xl sm:text-3xl text-white' />,
-			link: "",
-			backgroundColor: "bg-gray-900",
-		},
-		{
-			id: 2,
-			icon: <BiLogoWhatsapp className='text-2xl sm:text-3xl text-white' />,
-			link: "",
-			backgroundColor: "bg-whatsapp",
-		},
-		// {
-		// 	id: 2,
-		// 	icon: <Iconbi.BiLogoTwitter className='text-lg sm:text-2xl text-white' />,
-		// 	link: "#",
-		// 	backgroundColor: "bg-[#3CF]",
-		// },
+
+	const companyLinks = [
+		{ label: "Privacy Policy", href: "/terms-of-use?privacy-policy" },
+		{ label: "Terms & Conditions", href: "/terms-of-use?terms-of-use" },
+		{ label: "Contact Us", href: "/contact-us" },
+		{ label: "Support Center", href: "/contact-us" },
+		{ label: "FAQs", href: "/faq" },
 	];
 
-	const footerCardData = [
+	const accountLinks = [
 		{
-			icon: <RocketIconSvg />,
-			name: "Delivery Assistance",
-			description: "Seller Online Delivery",
+			label: firstName ? "My Account" : "Sign In",
+			href: firstName ? "/user/dashboard" : "/user/login",
 		},
-		{
-			icon: <FileIconSvg />,
-			name: "Secure Purchase",
-			description: "100% Secure Payment",
-		},
-		{
-			icon: <ChatServiceIconSvg />,
-			name: "Unmatched Service",
-			description: "Dedicated Support",
-		},
+		{ label: "View Cart", href: "/cart" },
+		{ label: "My Wishlist", href: "/user/my-orders" },
 	];
 
-	const footerData: footerDataProps[] = [
-		{
-			title: "Account",
-			links: [
-				{
-					label: firstName ? "Update Account" : "Create Account",
-					href: firstName ? "/user/account-details" : "/user/register",
-				},
-				{
-					label: firstName ? "Log Out" : "Login",
-					href: firstName ? "" : "/user/login",
-					function: firstName ? signOut : () => {},
-				},
-				{
-					label: firstName ? "Change Password" : "Forget Password",
-					href: firstName ? "/user/change-password" : "/user/forget-password",
-				},
-			],
-		},
-		{
-			title: "Information",
-			links: [
-				{ label: "FAQ", href: "/faq" },
-				{ label: "Support", href: "/contact-us" },
-			],
-		},
-		{
-			title: "Legal",
-			links: [
-				{ label: "Terms of Use", href: "/terms-of-use?terms-of-use" },
-				{ label: "Privacy Policy", href: "/terms-of-use?privacy-policy" },
-				{ label: "Delivery & Shipping", href: "/terms-of-use?delivery-return" },
-				{ label: "Refund Policy", href: "/terms-of-use?refund-policy" },
-			],
-		},
+	const socialLinks = [
+		{ icon: <BiLogoFacebook />, href: "#", bg: "bg-blue-600" },
+		{ icon: <BiLogoTwitter />, href: "#", bg: "bg-sky-500" },
+		{ icon: <BiLogoInstagram />, href: "#", bg: "bg-pink-600" },
+		{ icon: <BiLogoWhatsapp />, href: "#", bg: "bg-whatsapp" },
 	];
-
-	const productCards = footerCardData.map((item, index) => (
-		<FooterCard
-			key={index}
-			icon={item.icon}
-			name={item.name}
-			description={item.description}
-			borderRight={index !== footerCardData.length - 1}
-		/>
-	));
-
-	const staggerDelay = 0.2;
 
 	return (
-		<footer className='bg-background w-full py-2 flex flex-col item-center'>
-			<div className='mx-auto max-w-[1400px] w-full hidden slg:block'>
-				<section className='flex justify-center gap-16 mt-2'>
-					<div className='flex flex-col gap-4 w-[80%]'>
-						<LogoImage className='!w-[20px] lg:!w-[30px] rounded-sm' />
-
-						<div className='flex gap-1'>
-							{footer1socialMediaIcons.map((item, index) => (
-								<motion.a
-									href={item.link}
-									key={index}
-									className={`p-1 rounded-full ${item.backgroundColor} transition-[.5] hover:!-translate-y-1 hover:scale-110`}
-									initial={{ opacity: 0, scale: 1 }} // Initial position (opacity 0, y-axis offset 20px, and slightly smaller)
-									animate={{ opacity: 1, scale: 0.8 }} // Target position (fully opaque, no offset, and original size)
-									transition={{ delay: index * staggerDelay, duration: 0.5 }} // Stagger the animation delay based on index and set duration
-								>
-									{item.icon}
-								</motion.a>
-							))}
-						</div>
-					</div>
-
-					<div className='flex gap-4 w-full pt-3'>
-						{footerData.map((section, index) => (
-							<div key={index} className='flex flex-col gap-4 lg:gap-5 w-full'>
-								<span className='text-black font-medium text-base leading-[1.6]'>
-									{section.title}
-								</span>
-								{section.links.map((link, linkIndex) => (
-									<Link
-										key={linkIndex}
-										href={link.href}
-										onClick={link.function}
-										className='text-black/80 text-sm leading-[1.3] hover:text-primary-100 transition-[.3]'
-									>
-										{link.label}
-									</Link>
-								))}
-							</div>
+		<footer className='bg-white border-t border-gray-200 w-full'>
+			{/* ── Main footer columns ── */}
+			<div className='max-w-[1440px] mx-auto px-4 sm:px-8 py-10 grid grid-cols-2 md:grid-cols-3 gap-8'>
+				{/* Column 1 – Logo + tagline + social */}
+				<div className='col-span-2 md:col-span-1 space-y-4'>
+					<Link
+						href='/'
+						className='text-2xl font-black text-gray-900 tracking-tight inline-block'
+					>
+						<span className='text-shop'>C</span>lowStack
+					</Link>
+					<p className='text-sm text-gray-500 leading-relaxed'>
+						Your trusted destination for quality tech accessories and electronics
+						delivered nationwide.
+					</p>
+					<div className='flex items-center gap-2'>
+						{socialLinks.map((s, i) => (
+							<a
+								key={i}
+								href={s.href}
+								className={`${s.bg} text-white size-8 rounded-full flex items-center justify-center text-base hover:opacity-80 transition-opacity`}
+							>
+								{s.icon}
+							</a>
 						))}
 					</div>
-				</section>
-			</div>
 
-			<div className='justify-center mt-8 mb-2 hidden slg:flex'>
-				<hr className='w-full bg-primary-400/40' />
-			</div>
-
-			<div className='mx-auto flex w-full flex-col slg:hidden mb-4'>
-				<section className='flex flex-col justify-between gap-1 sm:gap-6 mt-2 px-2 xs:px-6 sm:px-10'>
-					<div className='flex w-full justify-between items-end gap-4'>
-						<div className=''>
-							<LogoImage className='!w-[30px] lg:!w-[30px]' />
-						</div>
-
-						<div className='flex gap-1 h-fit'>
-							{footer1socialMediaIcons.map((item, index) => (
-								<motion.a
-									href={item.link}
-									key={index}
-									className={`p-1 rounded-full ${item.backgroundColor} transition-[.5] hover:!-translate-y-1 hover:scale-110`}
-									initial={{ opacity: 0, scale: 1 }} // Initial position (opacity 0, y-axis offset 20px, and slightly smaller)
-									animate={{ opacity: 1, scale: 0.8 }} // Target position (fully opaque, no offset, and original size)
-									transition={{ delay: index * staggerDelay, duration: 0.5 }} // Stagger the animation delay based on index and set duration
-								>
-									{item.icon}
-								</motion.a>
-							))}
+					{/* Payment logos */}
+					<div>
+						<p className='text-xs text-gray-500 mb-2 font-medium'>
+							Secured Payment Gateways
+						</p>
+						<div className='flex items-center gap-2 flex-wrap'>
+							<img src='/images/visa.png' alt='Visa' className='h-6 object-contain' />
+							<img src='/images/mastercard.png' alt='Mastercard' className='h-6 object-contain' />
+							<img src='/images/maestro.png' alt='Maestro' className='h-6 object-contain' />
 						</div>
 					</div>
+				</div>
 
-					<div className='flex lg:gap-8 w-full pt-3'>
-						{footerData.map((section, index) => (
-							<div key={index} className='flex flex-col gap-2 sm:gap-5 w-full'>
-								<span className='text-black font-medium text-sm sm:text-base leading-[1.6]'>
-									{section.title}
-								</span>
+				{/* Column 2 – Company links */}
+				<div className='space-y-3'>
+					<h3 className='text-sm font-bold text-gray-900 uppercase tracking-wide'>
+						Company
+					</h3>
+					{companyLinks.map((link) => (
+						<Link
+							key={link.label}
+							href={link.href}
+							className={`block text-sm transition-colors leading-relaxed ${
+								pathname === link.href
+									? "text-shop font-medium"
+									: "text-gray-500 hover:text-shop"
+							}`}
+						>
+							{link.label}
+						</Link>
+					))}
+				</div>
 
-								{section.links.map((link, linkIndex) => (
-									<Link
-										key={linkIndex}
-										href={link.href}
-										className={`${link.href === pathname ? "text-primary-100" : "text-black"} text-xs sm:text-sm font-[400] hover:text-primary-100 transition-[.3] leading-6`}
-									>
-										{link.label}
-									</Link>
-								))}
+				{/* Column 3 – Account links */}
+				<div className='space-y-3'>
+					<h3 className='text-sm font-bold text-gray-900 uppercase tracking-wide'>
+						Account
+					</h3>
+					{accountLinks.map((link) => (
+						<Link
+							key={link.label}
+							href={link.href}
+							className={`block text-sm transition-colors leading-relaxed ${
+								pathname === link.href
+									? "text-shop font-medium"
+									: "text-gray-500 hover:text-shop"
+							}`}
+						>
+							{link.label}
+						</Link>
+					))}
+					{firstName && (
+						<button
+							onClick={signOut}
+							className='block text-sm text-red-500 hover:text-red-700 transition-colors text-left'
+						>
+							Log Out
+						</button>
+					)}
+				</div>
+			</div>
+
+			{/* ── Bottom bar ── */}
+			<div className='border-t border-gray-100'>
+				<div className='max-w-[1440px] mx-auto px-4 sm:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4'>
+					{/* Copyright */}
+					<p className='text-xs text-gray-500 text-center sm:text-left'>
+						&copy; {currentYear} {CompanyName}. All rights reserved.
+					</p>
+
+					{/* Phone numbers */}
+					<div className='flex items-center gap-6'>
+						<div className='flex items-center gap-2'>
+							<div className='size-7 bg-shop-light rounded-full flex items-center justify-center shrink-0'>
+								<FaHeadphones className='text-shop text-xs' />
 							</div>
-						))}
-					</div>
-				</section>
-			</div>
+							<div>
+								<p className='text-[9px] text-gray-400 leading-none'>
+									Working 8:00 – 22:00
+								</p>
+								<a
+									href='tel:+23400646666'
+									className='text-xs font-semibold text-gray-800 hover:text-shop transition-colors'
+								>
+									+23400646666
+								</a>
+							</div>
+						</div>
 
-			<div className='mx-auto max-w-[1156px]'>
-				<div className='flex items-center justify-center py-2'>
-					<div className='text-gray-700 sm:font-mono text-xs leading-[1.2]'>
-						Copyright&nbsp;@ {currentYear}&nbsp;{CompanyName} Alright Reserved.
+						<div className='flex items-center gap-2'>
+							<div className='size-7 bg-shop-light rounded-full flex items-center justify-center shrink-0'>
+								<FaHeadphones className='text-shop text-xs' />
+							</div>
+							<div>
+								<p className='text-[9px] text-gray-400 leading-none'>
+									24/7 Support
+								</p>
+								<a
+									href='tel:+23400648888'
+									className='text-xs font-semibold text-gray-800 hover:text-shop transition-colors'
+								>
+									+23400648888
+								</a>
+							</div>
+						</div>
+					</div>
+
+					{/* Follow us */}
+					<div className='flex items-center gap-2'>
+						<span className='text-xs text-gray-500 font-medium'>Follow Us</span>
+						{socialLinks.map((s, i) => (
+							<a
+								key={i}
+								href={s.href}
+								className={`${s.bg} text-white size-6 rounded-full flex items-center justify-center text-xs hover:opacity-80 transition-opacity`}
+							>
+								{s.icon}
+							</a>
+						))}
 					</div>
 				</div>
 			</div>
