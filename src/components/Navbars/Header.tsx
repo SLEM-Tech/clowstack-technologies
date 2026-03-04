@@ -98,7 +98,6 @@ const Header = () => {
 
 	const bottomNavLinks = [
 		{ href: "/", text: "Home" },
-		{ href: "/about", text: "About" },
 		{ href: "/category", text: "Shop" },
 		{ href: "/contact-us", text: "Contact" },
 	];

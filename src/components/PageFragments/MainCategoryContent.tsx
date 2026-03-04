@@ -83,7 +83,7 @@ const MainCategoryContent = () => {
 					<h4 className='text-xl sm:text-2xl mb-4 font-medium text-center'>
 						All Categories
 					</h4>
-					<div className='grid grid-cols-2 sm:flex flex-wrap justify-center gap-4 md:gap-6 px-4 sm:px-0'>
+					<div className='flex flex-wrap justify-center gap-4 md:gap-6 px-4 sm:px-0'>
 						{Categories?.map((data) => {
 							const productImage: any = categoryProductsMap[data?.id];
 							return (
