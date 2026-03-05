@@ -163,12 +163,14 @@ interface PopularSectionProps {
 	allCategories: CategoryType[];
 	categoryProductsMap: { [key: string]: ProductType[] };
 	isLoading: boolean;
+	title?: string;
 }
 
 const PopularProductsSection = ({
 	allCategories,
 	categoryProductsMap,
 	isLoading,
+	title,
 }: PopularSectionProps) => {
 	const dispatch = useDispatch();
 	const router = useRouter();
@@ -197,7 +199,7 @@ const PopularProductsSection = ({
 			<div className='max-w-[1440px] mx-auto px-4 sm:px-8'>
 				{/* Section header + filter tabs */}
 				<div className='flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 border-b border-gray-200 pb-3'>
-					<h2 className='text-xl font-bold text-gray-900'>Popular Products</h2>
+					<h2 className='text-xl font-bold text-gray-900'>{title || "Popular Products"}</h2>
 
 					<div className='flex items-center flex-wrap gap-0.5'>
 						<button
@@ -314,6 +316,7 @@ const SortedProducts = () => {
 				allCategories={group1.length ? group1 : filteredCategories}
 				categoryProductsMap={categoryProductsMap}
 				isLoading={isLoading || categoryWpIsLoading}
+				title="Top-shelf Products"
 			/>
 
 			{group2.length > 0 && (
@@ -321,6 +324,7 @@ const SortedProducts = () => {
 					allCategories={group2}
 					categoryProductsMap={categoryProductsMap}
 					isLoading={isLoading || categoryWpIsLoading}
+					title="Popular Products"
 				/>
 			)}
 		</>
