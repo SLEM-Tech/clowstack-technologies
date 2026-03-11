@@ -21,4 +21,5 @@ export const T = {
 	paylaterRequests:   `${prefix}paylater_requests`,
 	banners:            `${prefix}banners`,
 	globalSettings:     `${prefix}global_settings`,
+	reviews:            `${prefix}reviews`,
 } as const;

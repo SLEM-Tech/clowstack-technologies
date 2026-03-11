@@ -11,6 +11,7 @@ import {
 	FiCheckCircle,
 } from "react-icons/fi";
 import { useCart } from "react-use-cart";
+import { useQuery } from "react-query";
 import Picture from "../picture/Picture";
 import SocialMediaShare from "../common/SocialMediaShare";
 import { useProduct } from "../lib/woocommerce";
@@ -25,6 +26,136 @@ interface ProductDisplaySectionProps {
 	FormatedId?: string;
 }
 
+function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "lg" }) {
+	const cls = size === "lg" ? "text-2xl" : "text-sm";
+	return (
+		<span className={`flex gap-0.5 ${cls}`}>
+			{[1, 2, 3, 4, 5].map((s) => (
+				<span key={s} className={s <= Math.round(rating) ? "text-yellow-400" : "text-gray-200"}>
+					★
+				</span>
+			))}
+		</span>
+	);
+}
+
+function ReviewsTab({ productId }: { productId: number }) {
+	const [page, setPage] = useState(1);
+	const { data, isLoading } = useQuery(
+		["product-reviews", productId, page],
+		() => fetch(`/api/products/${productId}/reviews?page=${page}&per_page=8`).then((r) => r.json()),
+		{ keepPreviousData: true },
+	);
+
+	if (isLoading) {
+		return (
+			<div className="space-y-4 max-w-3xl">
+				{[1, 2, 3].map((i) => (
+					<div key={i} className="animate-pulse space-y-2 p-4 border border-slate-100 rounded-2xl">
+						<div className="h-4 bg-slate-100 rounded w-1/4" />
+						<div className="h-3 bg-slate-100 rounded w-full" />
+						<div className="h-3 bg-slate-100 rounded w-3/4" />
+					</div>
+				))}
+			</div>
+		);
+	}
+
+	if (!data || !Array.isArray(data.reviews) || data.reviews.length === 0) {
+		return (
+			<p className="text-slate-400 text-sm">No reviews yet for this product.</p>
+		);
+	}
+
+	const stats = data.stats;
+	const dist = stats?.distribution ?? {};
+
+	return (
+		<div className="max-w-3xl space-y-8">
+			{/* Summary */}
+			<div className="flex flex-col sm:flex-row gap-6 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+				<div className="flex flex-col items-center justify-center min-w-[100px]">
+					<span className="text-5xl font-black text-slate-900">
+						{stats?.average?.toFixed(1) ?? "0.0"}
+					</span>
+					<StarRating rating={stats?.average ?? 0} size="lg" />
+					<span className="text-xs text-slate-400 mt-1">{stats?.total ?? 0} review{stats?.total !== 1 ? "s" : ""}</span>
+				</div>
+				<div className="flex-1 space-y-1.5">
+					{[5, 4, 3, 2, 1].map((star) => {
+						const c = dist[star] ?? 0;
+						const pct = stats?.total ? Math.round((c / stats.total) * 100) : 0;
+						return (
+							<div key={star} className="flex items-center gap-2 text-xs text-slate-500">
+								<span className="w-4 text-right">{star}</span>
+								<span className="text-yellow-400">★</span>
+								<div className="flex-1 bg-slate-200 rounded-full h-1.5">
+									<div
+										className="bg-yellow-400 h-1.5 rounded-full transition-all"
+										style={{ width: `${pct}%` }}
+									/>
+								</div>
+								<span className="w-6 text-right">{c}</span>
+							</div>
+						);
+					})}
+				</div>
+			</div>
+
+			{/* Review list */}
+			<div className="space-y-4">
+				{data.reviews.map((review: any) => (
+					<div
+						key={review.id}
+						className="p-5 border border-slate-100 rounded-2xl space-y-2 bg-white"
+					>
+						<div className="flex items-start justify-between gap-3">
+							<div>
+								<div className="flex items-center gap-2">
+									<span className="font-bold text-slate-800 text-sm">{review.reviewer}</span>
+									{review.verified && (
+										<span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full border border-green-100">
+											Verified
+										</span>
+									)}
+								</div>
+								<StarRating rating={review.rating} />
+							</div>
+							<span className="text-[11px] text-slate-400 whitespace-nowrap">
+								{new Date(review.created_at).toLocaleDateString("en-GB", {
+									day: "numeric",
+									month: "short",
+									year: "numeric",
+								})}
+							</span>
+						</div>
+						<p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
+					</div>
+				))}
+			</div>
+
+			{/* Pagination */}
+			{data.pages > 1 && (
+				<div className="flex gap-2 justify-center">
+					{Array.from({ length: data.pages }, (_, i) => i + 1).map((p) => (
+						<button
+							key={p}
+							onClick={() => setPage(p)}
+							className={`w-8 h-8 rounded-full text-xs font-bold transition-colors ${
+								p === page
+									? "bg-slate-900 text-white"
+									: "bg-slate-100 text-slate-600 hover:bg-slate-200"
+							}`}
+						>
+							{p}
+						</button>
+					))}
+				</div>
+			)}
+		</div>
+	);
+}
+
 const ProductDisplaySection = ({ FormatedId }: ProductDisplaySectionProps) => {
 	const [selectedImage, setSelectedImage] = useState(0);
 	const { data: product, isLoading } = useProduct(FormatedId);
@@ -36,15 +167,15 @@ const ProductDisplaySection = ({ FormatedId }: ProductDisplaySectionProps) => {
 	const [baseUrl, setBaseUrl] = useState("");
 	const [isLoadingMainImage, setIsLoadingMainImage] = useState(false);
 	const [isCartOpen, setIsCartOpen] = useState(false);
+	const [drawerWidth, setDrawerWidth] = useState<number | string>("100%");
 	const [activeTab, setActiveTab] = useState<"description" | "reviews">("description");
 
 	const onOpenCart = () => setIsCartOpen(true);
 	const onCloseCart = () => setIsCartOpen(false);
 
 	useEffect(() => {
-		if (typeof window !== "undefined") {
-			setBaseUrl(`${window.location.protocol}//${window.location.host}`);
-		}
+		setBaseUrl(`${window.location.protocol}//${window.location.host}`);
+		setDrawerWidth(window.innerWidth > 768 ? 600 : "100%");
 	}, []);
 
 	// Calculate Discount
@@ -289,15 +420,7 @@ const ProductDisplaySection = ({ FormatedId }: ProductDisplaySectionProps) => {
 							dangerouslySetInnerHTML={{ __html: Product.description }}
 						/>
 					) : (
-						<div className='max-w-4xl'>
-							{Product.rating_count > 0 ? (
-								<p className='text-slate-500 text-sm'>
-									This product has {Product.rating_count} review{Product.rating_count !== 1 ? "s" : ""}.
-								</p>
-							) : (
-								<p className='text-slate-400 text-sm'>No reviews yet for this product.</p>
-							)}
-						</div>
+						<ReviewsTab productId={Product.id} />
 					)}
 				</div>
 
@@ -310,11 +433,7 @@ const ProductDisplaySection = ({ FormatedId }: ProductDisplaySectionProps) => {
 				open={isCartOpen}
 				onClose={onCloseCart}
 				placement='right'
-				width={
-					typeof window !== "undefined" && window.innerWidth > 768
-						? 600
-						: "100%"
-				}
+				width={drawerWidth}
 				maskClosable={true}
 			>
 				<ProductTable onClose={onCloseCart} />
