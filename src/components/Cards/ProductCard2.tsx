@@ -79,7 +79,7 @@ const ProductCard2 = ({
 
 	return (
 		<div
-			className={`group relative flex flex-col min-w-52 lg:min-w-64 rounded-2xl bg-white transition-all duration-500 hover:-translate-y-2 ${
+			className={`group relative flex flex-col rounded-2xl bg-white transition-all duration-500 hover:-translate-y-2 ${
 				boxShadow
 					? "shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
 					: "border border-gray-100"

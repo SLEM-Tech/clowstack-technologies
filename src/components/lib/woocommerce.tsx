@@ -143,7 +143,7 @@ function buildInternalUrl(endpoint: string, extraParams?: Record<string, any>): 
 }
 
 /* ─────────────────────────────────────────────
-   React-Query hooks (same API as before)
+React-Query hooks (same API as before)
 ───────────────────────────────────────────── */
 
 export const useCustomer = (_customerId?: string) => {
@@ -296,7 +296,7 @@ export const useCategories = (categoryId: string | undefined) => {
 
 export const useCreateOrder = () => {
 	return useMutation(async (orderData: any) => {
-		const response = await WooCommerce.post("orders", orderData);
+		const response = await WooCommerce.post("orders/add", orderData, true);
 		return response.data;
 	});
 };
