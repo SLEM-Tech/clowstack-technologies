@@ -9,6 +9,7 @@ const navItems = [
   { href: "/admin/categories", label: "Categories", icon: "🗂️" },
   { href: "/admin/orders", label: "Orders", icon: "🛒" },
   { href: "/admin/customers", label: "Customers", icon: "👥" },
+  { href: "/admin/reviews", label: "Reviews", icon: "⭐" },
 { href: "/admin/banners", label: "Banners", icon: "🖼️" },
   { href: "/admin/admins", label: "Admins", icon: "🔐" },
   { href: "/admin/settings", label: "Settings", icon: "⚙️" },

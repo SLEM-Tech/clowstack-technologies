@@ -6,19 +6,19 @@ import { WooCommerceServer } from "@utils/endpoints";
 
 export async function generateStaticParams() {
 	try {
-		// Fetch products from WooCommerce
 		const response = await WooCommerceServer.get("products");
-		const products = response?.data || [];
+		const raw = response?.data;
+		const products: { id: number; slug: string }[] = Array.isArray(raw)
+			? raw
+			: Array.isArray(raw?.products)
+				? raw.products
+				: [];
 
-		// Generate static paths using the slug and ID
-		const paths = products.map((product: { id: number; slug: string }) => ({
+		return products.map((product) => ({
 			id: `${product.slug}-${product.id}`,
 		}));
-
-		return paths;
 	} catch (error) {
 		console.error("Error fetching products in generateStaticParams:", error);
-		// Return an empty array to avoid breaking the build process
 		return [];
 	}
 }

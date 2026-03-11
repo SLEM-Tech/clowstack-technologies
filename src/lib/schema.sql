@@ -155,6 +155,18 @@ CREATE TABLE IF NOT EXISTS clowstack_global_settings (
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Product Reviews
+CREATE TABLE IF NOT EXISTS clowstack_reviews (
+  id          SERIAL PRIMARY KEY,
+  product_id  INTEGER NOT NULL REFERENCES clowstack_products(id) ON DELETE CASCADE,
+  reviewer    VARCHAR(255) NOT NULL,
+  email       VARCHAR(255),
+  rating      INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  comment     TEXT NOT NULL,
+  verified    BOOLEAN NOT NULL DEFAULT false,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- ── Indexes ──────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_clowstack_products_status        ON clowstack_products(status);
 CREATE INDEX IF NOT EXISTS idx_clowstack_products_stock_status  ON clowstack_products(stock_status);
@@ -166,6 +178,7 @@ CREATE INDEX IF NOT EXISTS idx_clowstack_orders_status          ON clowstack_ord
 CREATE INDEX IF NOT EXISTS idx_clowstack_order_items_order      ON clowstack_order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_clowstack_categories_parent      ON clowstack_categories(parent_id);
 CREATE INDEX IF NOT EXISTS idx_clowstack_categories_slug        ON clowstack_categories(slug);
+CREATE INDEX IF NOT EXISTS idx_clowstack_reviews_product        ON clowstack_reviews(product_id);
 
 -- ── Default Global Settings ───────────────────────────────────
 INSERT INTO clowstack_global_settings (key, value) VALUES
