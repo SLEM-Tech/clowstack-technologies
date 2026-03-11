@@ -36,7 +36,7 @@ const { description, keywords, title, url, ogImage } = SEODATA.default;
 export const metadata: Metadata = {
 	title: {
 		default: title,
-		template: `%s | ${SITE_NAME}`, // Allows sub-pages to have "Page Title | Nestora"
+		template: `%s | ${SITE_NAME}`, // Allows sub-pages to have "Page Title | Clowstack"
 	},
 	description: description,
 	keywords: keywords,

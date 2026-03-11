@@ -76,7 +76,6 @@ export const BuyPaylaterModalFormModel3 = Yup.object({
 export const RegisterFormModel = Yup.object({
 	first_name: Yup.string().required("First name is required"),
 	last_name: Yup.string().required("Last name is required"),
-	username: Yup.string().required("Username is required"),
 	email: Yup.string()
 		.email("Invalid email address")
 		.required("Email is required"),

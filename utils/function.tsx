@@ -26,7 +26,7 @@ export const LogoImage = ({ className }: LogoImageProps) => {
 				className={`w-[20px] lg:w-[30px] duration-300 hover:scale-105 transition-[.3] hover:animate-pulse ${className}`}
 			/>
 			<h4 className={`text-base sm:text-lg font-medium ${pacifico.className}`}>
-				Nestora
+				Clowstack
 			</h4> */}
 		</Link>
 	);

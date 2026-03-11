@@ -1,8 +1,16 @@
 "use client";
-import { signOut } from "@utils/lib";
-import { WC_ConsumerKey, WC_consumerSecret, WC_URL } from "@utils/lib/data";
-import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import { useMutation, useQuery } from "react-query";
+import Cookies from "js-cookie";
+import { AUTH_TOKEN_KEY } from "@constants";
+
+function getAuthToken(): string {
+	return Cookies.get(AUTH_TOKEN_KEY) ?? "";
+}
+
+function authHeaders(): HeadersInit {
+	const token = getAuthToken();
+	return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 /* ─────────────────────────────────────────────
    Persistent client-side cache (localStorage)
@@ -37,30 +45,119 @@ export function cacheSet(key: string, data: unknown, ttl = CACHE_TTL) {
 	}
 }
 
-export const WooCommerce = new WooCommerceRestApi({
-	url: WC_URL, // Your store URL
-	consumerKey: WC_ConsumerKey, // Your consumer key
-	consumerSecret: WC_consumerSecret, // Your consumer secret
-	version: "wc/v3", // WooCommerce API version
-});
+/* ─────────────────────────────────────────────
+   Internal API client replacing WooCommerce SDK
+───────────────────────────────────────────── */
+export const WooCommerce = {
+	async get(endpoint: string, params?: Record<string, any>, withAuth = false): Promise<{ data: any; headers: Record<string, string> }> {
+		const url = buildInternalUrl(endpoint, params);
+		const res = await fetch(url, {
+			cache: "no-store",
+			headers: withAuth ? authHeaders() : {},
+		});
+		if (!res.ok) {
+			const body = await res.json().catch(() => ({}));
+			throw Object.assign(new Error(body.message || "API error"), { response: { status: res.status, data: body } });
+		}
+		const data = await res.json();
+		const headers: Record<string, string> = {};
+		res.headers.forEach((value, key) => { headers[key] = value; });
+		return { data, headers };
+	},
 
-export const useCustomer = (customerId: string | undefined) => {
+	async post(endpoint: string, body: any, withAuth = false): Promise<{ data: any }> {
+		const url = buildInternalUrl(endpoint);
+		const res = await fetch(url, {
+			method: "POST",
+			headers: { "Content-Type": "application/json", ...(withAuth ? authHeaders() : {}) },
+			body: JSON.stringify(body),
+		});
+		if (!res.ok) {
+			const errBody = await res.json().catch(() => ({}));
+			throw Object.assign(new Error(errBody.message || "API error"), { response: { status: res.status } });
+		}
+		return { data: await res.json() };
+	},
+
+	async put(endpoint: string, body: any, withAuth = false): Promise<{ data: any }> {
+		const url = buildInternalUrl(endpoint);
+		const res = await fetch(url, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json", ...(withAuth ? authHeaders() : {}) },
+			body: JSON.stringify(body),
+		});
+		if (!res.ok) {
+			const errBody = await res.json().catch(() => ({}));
+			throw Object.assign(new Error(errBody.message || "API error"), { response: { status: res.status } });
+		}
+		return { data: await res.json() };
+	},
+};
+
+/**
+ * Maps a WooCommerce REST endpoint string to our internal Next.js API route.
+ * Examples:
+ *   "products"                   → /api/products
+ *   "products/123"               → /api/products/123
+ *   "products/categories"        → /api/category
+ *   "products/categories/5"      → /api/category/5
+ *   "products?category=3&per_page=10" → /api/products?category=3&per_page=10
+ *   "orders"                     → /api/order
+ *   "orders/7"                   → /api/order/7
+ *   "customers/9"                → /api/customer/9
+ *   "settings/general"           → /api/setting/global/all
+ */
+function buildInternalUrl(endpoint: string, extraParams?: Record<string, any>): string {
+	// Split path from query string
+	const [pathPart, qs] = endpoint.split("?");
+	const segments = pathPart.trim().split("/").filter(Boolean);
+
+	let internalPath = "/api";
+
+	if (segments[0] === "products" && segments[1] === "categories") {
+		// products/categories or products/categories/:id
+		internalPath += "/category" + (segments[2] ? `/${segments[2]}` : "");
+	} else if (segments[0] === "products") {
+		internalPath += "/products" + (segments[1] ? `/${segments[1]}` : "");
+	} else if (segments[0] === "orders") {
+		internalPath += "/order" + (segments[1] ? `/${segments[1]}` : "");
+	} else if (segments[0] === "customers") {
+		// customers/me or customers/:id → /api/customer/userinfo
+		internalPath += "/customer/userinfo";
+	} else if (segments[0] === "settings") {
+		internalPath += "/setting/global/all";
+	} else {
+		internalPath += "/" + segments.join("/");
+	}
+
+	// Merge inline query string with extraParams
+	const params = new URLSearchParams(qs ?? "");
+	if (extraParams) {
+		Object.entries(extraParams).forEach(([k, v]) => {
+			if (v !== undefined && v !== null) params.set(k, String(v));
+		});
+	}
+
+	const queryString = params.toString();
+	return internalPath + (queryString ? `?${queryString}` : "");
+}
+
+/* ─────────────────────────────────────────────
+   React-Query hooks (same API as before)
+───────────────────────────────────────────── */
+
+export const useCustomer = (_customerId?: string) => {
 	return useQuery(
-		["customer", customerId],
+		["customer"],
 		async () => {
-			const response = await WooCommerce.get(`customers/${customerId}`);
-			return response.data;
+			// Returns current authenticated user's info from our internal API
+			const response = await WooCommerce.get("customers/me", undefined, true);
+			// Wrap in array to keep backwards-compatible with filterCustomersByEmail usage
+			return response.data ? [response.data] : [];
 		},
 		{
-			onError: (error: any) => {
-				if (error.response?.status === 401 || error.response?.status === 403) {
-					// Trigger signout if unauthorized
-					signOut();
-				} else {
-					console.error("An error occurred:", error);
-				}
-			},
 			staleTime: Infinity,
+			retry: false,
 		},
 	);
 };
@@ -73,30 +170,28 @@ export const useProduct = (productId: string | undefined) => {
 			return response.data;
 		},
 		{
+			enabled: !!productId,
 			staleTime: Infinity,
 		},
 	);
 };
 
-export const useCustomerOrders = (customerId: number | string | undefined) => {
+export const useCustomerOrders = (_customerId?: number | string) => {
 	return useQuery(
-		["customer-orders", customerId],
+		["customer-orders"],
 		async () => {
-			if (!customerId) throw new Error("Customer ID is required");
-
-			const response = await WooCommerce.get("orders", {
-				customer: customerId,
-				per_page: 100, // Adjust as needed
-				order: "desc", // Most recent first
-				orderby: "date",
-			});
-
-			return response.data;
+			const token = getAuthToken();
+			if (!token) return [];
+			const response = await WooCommerce.get("orders", { per_page: 100 }, true);
+			return Array.isArray(response.data?.orders)
+				? response.data.orders
+				: Array.isArray(response.data)
+					? response.data
+					: [];
 		},
 		{
-			enabled: !!customerId, // Only run if customerId exists
-			staleTime: 5 * 60 * 1000, // 5 minutes
-			retry: 2,
+			staleTime: 5 * 60 * 1000,
+			retry: 1,
 		},
 	);
 };
@@ -112,17 +207,19 @@ export const useOrders = (
 			const endpoint = id
 				? `orders/${id}`
 				: `orders?page=${page}&per_page=${perPage}`;
-			const response = await WooCommerce.get(endpoint);
+			const response = await WooCommerce.get(endpoint, undefined, true);
 
-			// Extract total items and total pages from headers
-			const totalItems = parseInt(response.headers["x-wp-total"], 10);
-			const totalPages = parseInt(response.headers["x-wp-totalpages"], 10);
+			const totalItems = parseInt(response.headers["x-wp-total"] ?? "0", 10);
+			const totalPages = parseInt(response.headers["x-wp-totalpages"] ?? "1", 10);
 
-			return {
-				data: response.data,
-				totalItems,
-				totalPages,
-			};
+			// Our /api/order returns { orders: [], totalDoc, ... }
+			const data = Array.isArray(response.data)
+				? response.data
+				: Array.isArray(response.data?.orders)
+					? response.data.orders
+					: response.data;
+
+			return { data, totalItems, totalPages };
 		},
 		{
 			keepPreviousData: true,
@@ -136,24 +233,17 @@ export const useMediaUpload = () => {
 	return useMutation(async (file: File) => {
 		const formData = new FormData();
 		formData.append("file", file);
-		formData.append("title", `Receipt_${Date.now()}`);
 
-		const response = await fetch(`${WC_URL}/wp-json/wp/v2/media`, {
+		const res = await fetch("/api/media/upload", {
 			method: "POST",
-			headers: {
-				// We use Basic Auth for the Media API (ConsumerKey:ConsumerSecret)
-				Authorization:
-					"Basic " + btoa(`${WC_ConsumerKey}:${WC_consumerSecret}`),
-			},
 			body: formData,
 		});
 
-		if (!response.ok) throw new Error("Media upload failed");
-		return await response.json();
+		if (!res.ok) throw new Error("Media upload failed");
+		return await res.json();
 	});
 };
 
-// Hook for Updating the Order
 export const useUpdateOrder = () => {
 	return useMutation(
 		async ({ orderId, data }: { orderId: number; data: any }) => {
@@ -171,6 +261,7 @@ export const useProductSearch = (query: string | undefined) => {
 			return response.data;
 		},
 		{
+			enabled: !!query,
 			staleTime: Infinity,
 		},
 	);
@@ -183,14 +274,6 @@ export const useGeneralSettings = () => {
 	});
 };
 
-// export const useBankTransferSettings = () => {
-// 	return useQuery("bank-transfer-accounts", async () => {
-// 		const response = await WooCommerce.get("payment_gateways/bacs");
-
-// 		return response.data.settings;
-// 	});
-// };
-
 export const useCategories = (categoryId: string | undefined) => {
 	const cacheKey = `categories_${categoryId ?? "all"}`;
 	return useQuery(
@@ -199,10 +282,11 @@ export const useCategories = (categoryId: string | undefined) => {
 			const cached = cacheGet<CategoryType[]>(cacheKey);
 			if (cached) return cached;
 			const response = await WooCommerce.get(
-				`products/categories/${categoryId}`,
+				`products/categories/${categoryId ?? ""}`,
 			);
-			cacheSet(cacheKey, response.data);
-			return response.data;
+			const data = Array.isArray(response.data) ? response.data : [response.data];
+			cacheSet(cacheKey, data);
+			return data;
 		},
 		{
 			staleTime: Infinity,
@@ -223,15 +307,16 @@ export const useProductsByCategory = (categoryId: string) => {
 		const cached = cacheGet<ProductType[]>(cacheKey);
 		if (cached) return cached;
 		const response = await WooCommerce.get(`products?category=${categoryId}`);
-		cacheSet(cacheKey, response.data);
-		return response.data;
+		const data = response.data;
+		cacheSet(cacheKey, data);
+		return data;
 	});
 };
 
 export const useUpdateCustomer = () => {
 	return useMutation(async (updatedCustomerData: any) => {
-		const { id, ...data } = updatedCustomerData; // Ensure you pass in the customer ID along with the new data
-		const response = await WooCommerce.put(`customers/${id}`, data);
+		const { id, ...data } = updatedCustomerData;
+		const response = await WooCommerce.put(`customers/${id}`, data, true);
 		return response.data;
 	});
 };

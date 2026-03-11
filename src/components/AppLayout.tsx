@@ -1,6 +1,9 @@
+"use client";
 import { ReactNode } from "react";
 import Header from "./Navbars/Header";
 import Footer from "./Footers/Footer";
+import WishlistDrawer from "./Wishlist/WishlistDrawer";
+import CompareBar from "./Compare/CompareBar";
 
 interface AppLayoutProps {
 	children: ReactNode;
@@ -21,6 +24,10 @@ const AppLayout = ({ children, className }: AppLayoutProps) => {
 			</div>
 			<Footer />
 			<div className='mt-20 sm:mt-0' />
+
+			{/* Global UI — Wishlist drawer + Compare floating bar */}
+			<WishlistDrawer />
+			<CompareBar />
 		</main>
 	);
 };

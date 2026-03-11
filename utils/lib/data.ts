@@ -1,7 +1,7 @@
 import { AUTH_EMAIL } from "@constants";
 import Cookies from "js-cookie";
 
-export const AUTH_TOKEN_KEY = "NESTORA_LOGIN_ACCESS";
+export const AUTH_TOKEN_KEY = "CLOWSTACK_LOGIN_ACCESS";
 export const signOut = () => {
 	Cookies.remove(AUTH_TOKEN_KEY);
 	Cookies.remove(AUTH_EMAIL);
