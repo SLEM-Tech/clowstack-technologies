@@ -23,7 +23,7 @@ const ChangePasswordForm = () => {
 	const [showOldPassword, setShowOldPassword] = useState(false);
 	const [showNewPassword, setShowNewPassword] = useState(false);
 	const { data: customer, isLoading, isError } = useCustomer("");
-	const wc_customer2_info: Woo_Customer_Type[] = customer;
+	const wc_customer2_info: Woo_Customer_Type[] = customer ?? [];
 	const wc_customer_info: Woo_Customer_Type | undefined =
 		filterCustomersByEmail(wc_customer2_info, customerEmail);
 
