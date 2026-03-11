@@ -12,7 +12,7 @@ const DeliveryReturn = () => {
 				<p className='text-sm md:text-base leading-relaxed max-w-4xl'>
 					At{" "}
 					<span className='font-bold text-slate-900'>
-						Nestora Digital Innovations
+						Clowstack Technologies
 					</span>
 					, we prioritize the integrity of your cargo. From international
 					arrival to last-mile delivery, we utilize a strictly monitored courier
@@ -132,7 +132,7 @@ const DeliveryReturn = () => {
 					<p>
 						•{" "}
 						<span className='font-bold text-slate-800'>Transfer of Risk:</span>{" "}
-						Nestora Digital Innovations bears no responsibility for items signed
+						Clowstack Technologies bears no responsibility for items signed
 						for by unauthorized third parties.
 					</p>
 					<p>
@@ -151,10 +151,10 @@ const DeliveryReturn = () => {
 				<div className='pt-4 flex items-center gap-3 text-xs font-bold text-primary-100'>
 					Queries:{" "}
 					<a
-						href='mailto:IgweBlessing@nestora.com.ng'
+						href='mailto:support@clowstack.com'
 						className='hover:underline'
 					>
-						IgweBlessing@nestora.com.ng
+						support@clowstack.com
 					</a>
 				</div>
 			</div>

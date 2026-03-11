@@ -36,6 +36,7 @@ const ProductDisplaySection = ({ FormatedId }: ProductDisplaySectionProps) => {
 	const [baseUrl, setBaseUrl] = useState("");
 	const [isLoadingMainImage, setIsLoadingMainImage] = useState(false);
 	const [isCartOpen, setIsCartOpen] = useState(false);
+	const [activeTab, setActiveTab] = useState<"description" | "reviews">("description");
 
 	const onOpenCart = () => setIsCartOpen(true);
 	const onCloseCart = () => setIsCartOpen(false);
@@ -257,20 +258,47 @@ const ProductDisplaySection = ({ FormatedId }: ProductDisplaySectionProps) => {
 					</div>
 				</div>
 
-				{/* Description & Specs Tab */}
+				{/* Description & Reviews Tabs */}
 				<div className='mt-2 lg:mt-20 w-[95%] overflow-x-auto'>
 					<div className='flex gap-8 border-b border-slate-100 mb-8'>
-						<button className='pb-4 border-b-2 border-slate-900 text-xs lg:text-sm font-black uppercase tracking-widest'>
+						<button
+							onClick={() => setActiveTab("description")}
+							className={`pb-4 text-xs lg:text-sm font-black uppercase tracking-widest transition-colors ${
+								activeTab === "description"
+									? "border-b-2 border-slate-900 text-slate-900"
+									: "text-slate-400 hover:text-slate-600"
+							}`}
+						>
 							Description
 						</button>
-						<button className='pb-4 text-slate-400 text-xs lg:text-sm font-bold uppercase tracking-widest hover:text-slate-600 transition-colors'>
+						<button
+							onClick={() => setActiveTab("reviews")}
+							className={`pb-4 text-xs lg:text-sm uppercase tracking-widest transition-colors ${
+								activeTab === "reviews"
+									? "border-b-2 border-slate-900 text-slate-900 font-black"
+									: "text-slate-400 hover:text-slate-600 font-bold"
+							}`}
+						>
 							Reviews ({Product.rating_count})
 						</button>
 					</div>
-					<div
-						className='text-base text-slate-600 leading-relaxed max-w-4xl prose prose-slate'
-						dangerouslySetInnerHTML={{ __html: Product.description }}
-					/>
+
+					{activeTab === "description" ? (
+						<div
+							className='text-base text-slate-600 leading-relaxed max-w-4xl prose prose-slate'
+							dangerouslySetInnerHTML={{ __html: Product.description }}
+						/>
+					) : (
+						<div className='max-w-4xl'>
+							{Product.rating_count > 0 ? (
+								<p className='text-slate-500 text-sm'>
+									This product has {Product.rating_count} review{Product.rating_count !== 1 ? "s" : ""}.
+								</p>
+							) : (
+								<p className='text-slate-400 text-sm'>No reviews yet for this product.</p>
+							)}
+						</div>
+					)}
 				</div>
 
 				<RelatedProductsSection

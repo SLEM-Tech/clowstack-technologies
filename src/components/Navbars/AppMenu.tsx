@@ -10,6 +10,9 @@ import useToken from "../hooks/useToken";
 import { signOut } from "@utils/lib";
 import { useCustomer, useOrders } from "../lib/woocommerce";
 import { filterCustomersByEmail } from "@constants";
+import { useDispatch, useSelector } from "react-redux";
+import { setWishlistOpen } from "../Redux/Wishlist";
+import { RootState as LegacyRootState } from "../set-up/redux/root-reducer";
 import {
 	FiHome,
 	FiShoppingBag,
@@ -17,16 +20,21 @@ import {
 	FiShoppingCart,
 	FiUser,
 	FiLogIn,
+	FiHeart,
 } from "react-icons/fi";
 
 const AppMenu = () => {
+	const dispatch = useDispatch();
 	const pathname = usePathname();
 	const router = useRouter();
 	const { totalItems } = useCart();
 	const { data: customer, isLoading, isError } = useCustomer("");
+	const wishlistCount = useSelector(
+		(state: LegacyRootState) => state.wishlist.items.length,
+	);
 
 	const { email } = useToken();
-	const wc_customer2_info: Woo_Customer_Type[] = customer;
+	const wc_customer2_info: Woo_Customer_Type[] = customer ?? [];
 	const wc_customer_info: Woo_Customer_Type | undefined =
 		filterCustomersByEmail(wc_customer2_info, email);
 	const firstName = wc_customer_info?.first_name;
@@ -63,25 +71,22 @@ const AppMenu = () => {
 			id: "home",
 			url: "/",
 			link: "Home",
-			icon: FiHome, // Modern outline home
+			icon: FiHome,
 			onClick: () => handleTabClick("/"),
 		},
 		{
-			id: "shop",
-			url: totalOrderedItems > 0 ? "/user/my-orders" : "/category",
-			link: totalOrderedItems > 0 ? "Orders" : "Shop",
-			// FiBox for packages/inventory, FiShoppingBag for storefront
-			icon: totalOrderedItems > 0 ? FiBox : FiShoppingBag,
-			onClick:
-				totalOrderedItems > 0
-					? () => handleTabClick("/user/my-orders")
-					: () => handleTabClick("/category"),
+			id: "wishlist",
+			url: "#wishlist",
+			link: "Wishlist",
+			icon: FiHeart,
+			badge: wishlistCount,
+			onClick: () => dispatch(setWishlistOpen(true)),
 		},
 		{
 			id: "cart",
 			url: "#cart",
 			link: "Cart",
-			icon: FiShoppingCart, // Sleek shopping cart
+			icon: FiShoppingCart,
 			badge: totalItems,
 			onClick: onOpenCart,
 		},
@@ -89,7 +94,6 @@ const AppMenu = () => {
 			id: "account",
 			url: isLoggedIn ? "#account" : "/user/login",
 			link: isLoggedIn ? "Account" : "Login",
-			// FiUser for profile, FiLogIn for signing in
 			icon: isLoggedIn ? FiUser : FiLogIn,
 			onClick: isLoggedIn
 				? () => handleTabClick("/user/dashboard")

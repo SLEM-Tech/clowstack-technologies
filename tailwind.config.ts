@@ -18,7 +18,7 @@ const config: Config = {
 				transparent: "transparent",
 				current: "currentColor",
 
-				/* ========== Nestora Brand Foundation ========== */
+				/* ========== Clowstack Brand Foundation ========== */
 				// The deep navy blue seen in the "Maintenance" banner
 				brand: {
 					navy: "#002D5B",

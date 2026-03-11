@@ -9,14 +9,19 @@ import { AiFillStar } from "react-icons/ai";
 import { RiShoppingCartLine } from "react-icons/ri";
 import Picture from "@src/components/picture/Picture";
 import { FormatMoney2 } from "@src/components/Reusables/FormatMoney";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { updateCategorySlugId } from "@src/components/config/features/subCategoryId";
 import { useRouter } from "next/navigation";
+import { FiHeart, FiBarChart2 } from "react-icons/fi";
+import { RootState } from "@src/components/set-up/redux/root-reducer";
+import { toggleWishlist } from "@src/components/Redux/Wishlist";
+import { toggleCompare } from "@src/components/Redux/Compare";
 
 /* ─────────────────────────────────────────────
    Home-page product card – matches the new UI
 ───────────────────────────────────────────── */
 const HomeProductCard = ({ product }: { product: ProductType }) => {
+	const dispatch = useDispatch();
 	const { addItem, getItem, updateItem, removeItem } = useCart();
 	const ID = product.id.toString();
 	const cartItem = getItem(ID);
@@ -28,6 +33,14 @@ const HomeProductCard = ({ product }: { product: ProductType }) => {
 			? Math.round(((oldPrice - price) / oldPrice) * 100)
 			: 0;
 	const slugDesc = convertToSlug(product.name);
+
+	const wishlisted = useSelector((state: RootState) =>
+		state.wishlist.items.some((i) => i.id === product.id),
+	);
+	const inCompare = useSelector((state: RootState) =>
+		state.compare.items.some((i) => i.id === product.id),
+	);
+	const compareCount = useSelector((state: RootState) => state.compare.items.length);
 
 	const handleAdd = (e: React.MouseEvent) => {
 		e.preventDefault();
@@ -58,6 +71,25 @@ const HomeProductCard = ({ product }: { product: ProductType }) => {
 					{discount}%
 				</span>
 			)}
+
+			{/* Wishlist & Compare — appear on hover */}
+			<div className='absolute top-2 right-2 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10'>
+				<button
+					onClick={(e) => { e.preventDefault(); dispatch(toggleWishlist(product)); }}
+					title={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+					className={`p-1.5 rounded-full shadow transition ${wishlisted ? 'bg-red-500 text-white' : 'bg-white text-slate-400 hover:text-red-500'}`}
+				>
+					<FiHeart size={13} className={wishlisted ? 'fill-white' : ''} />
+				</button>
+				<button
+					onClick={(e) => { e.preventDefault(); if (!inCompare && compareCount >= 4) return; dispatch(toggleCompare(product)); }}
+					title={inCompare ? 'Remove from compare' : 'Add to compare'}
+					disabled={!inCompare && compareCount >= 4}
+					className={`p-1.5 rounded-full shadow transition disabled:opacity-40 ${inCompare ? 'bg-primary-100 text-white' : 'bg-white text-slate-400 hover:text-primary-100'}`}
+				>
+					<FiBarChart2 size={13} />
+				</button>
+			</div>
 
 			{/* Image */}
 			<Link

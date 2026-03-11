@@ -3,11 +3,16 @@
 import React from "react";
 import { AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
 import { RiShoppingBagFill } from "react-icons/ri";
+import { FiHeart, FiBarChart2 } from "react-icons/fi";
 import { useCart } from "react-use-cart";
+import { useDispatch, useSelector } from "react-redux";
 import Link from "next/link";
 import Picture from "../picture/Picture";
 import { FormatMoney2 } from "../Reusables/FormatMoney";
 import { convertToSlug } from "@constants";
+import { RootState } from "../set-up/redux/root-reducer";
+import { toggleWishlist } from "../Redux/Wishlist";
+import { toggleCompare } from "../Redux/Compare";
 
 interface ProductCard2Props {
 	id: string | number;
@@ -16,6 +21,7 @@ interface ProductCard2Props {
 	newAmount: string;
 	description: string;
 	boxShadow?: boolean;
+	product?: ProductType;
 }
 
 const ProductCard2 = ({
@@ -25,7 +31,9 @@ const ProductCard2 = ({
 	newAmount,
 	description,
 	boxShadow = true,
+	product,
 }: ProductCard2Props) => {
+	const dispatch = useDispatch();
 	const { addItem, removeItem, updateItem, getItem } = useCart();
 
 	const ID = id.toString();
@@ -33,6 +41,14 @@ const ProductCard2 = ({
 	const quantity = cartItem?.quantity || 0;
 	const price = parseInt(newAmount);
 	const slugDesc = convertToSlug(description);
+
+	const wishlisted = useSelector((state: RootState) =>
+		product ? state.wishlist.items.some((i) => i.id === product.id) : false,
+	);
+	const inCompare = useSelector((state: RootState) =>
+		product ? state.compare.items.some((i) => i.id === product.id) : false,
+	);
+	const compareCount = useSelector((state: RootState) => state.compare.items.length);
 
 	// Calculate Discount Percentage
 	const discount = oldAmount
@@ -49,14 +65,55 @@ const ProductCard2 = ({
 		else updateItem(ID, { quantity: quantity - 1 });
 	};
 
+	const handleWishlist = (e: React.MouseEvent) => {
+		e.preventDefault();
+		if (product) dispatch(toggleWishlist(product));
+	};
+
+	const handleCompare = (e: React.MouseEvent) => {
+		e.preventDefault();
+		if (!product) return;
+		if (!inCompare && compareCount >= 4) return;
+		dispatch(toggleCompare(product));
+	};
+
 	return (
 		<div
-			className={`group relative flex flex-col min-w-52 lg:min-w-64 rounded-2xl bg-white overflow-hidden transition-all duration-500 hover:-translate-y-2 ${
+			className={`group relative flex flex-col rounded-2xl bg-white transition-all duration-500 hover:-translate-y-2 ${
 				boxShadow
 					? "shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
 					: "border border-gray-100"
 			}`}
 		>
+			{/* Wishlist & Compare — appear on hover */}
+			{product && (
+				<div className='absolute top-2 right-2 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-20'>
+					<button
+						onClick={handleWishlist}
+						title={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+						className={`p-1.5 rounded-full shadow transition ${
+							wishlisted
+								? "bg-red-500 text-white"
+								: "bg-white text-slate-400 hover:text-red-500"
+						}`}
+					>
+						<FiHeart size={14} className={wishlisted ? "fill-white" : ""} />
+					</button>
+					<button
+						onClick={handleCompare}
+						title={inCompare ? "Remove from compare" : "Add to compare"}
+						disabled={!inCompare && compareCount >= 4}
+						className={`p-1.5 rounded-full shadow transition disabled:opacity-40 ${
+							inCompare
+								? "bg-primary-100 text-white"
+								: "bg-white text-slate-400 hover:text-primary-100"
+						}`}
+					>
+						<FiBarChart2 size={14} />
+					</button>
+				</div>
+			)}
+
 			{/* Image Container */}
 			<Link
 				href={`/home-item/product/${slugDesc}-${id}`}
@@ -68,9 +125,9 @@ const ProductCard2 = ({
 					className='object-contain w-[85%] h-[85%] transition-transform duration-700 ease-out group-hover:scale-110'
 				/>
 
-				{/* Elegant Discount Badge */}
+				{/* Discount Badge — moved to left so it doesn't overlap the action buttons */}
 				{discount > 0 && (
-					<div className='absolute top-3 right-3 bg-slate-900 text-white text-sm font-black px-2 py-1 rounded-lg shadow-sm z-10'>
+					<div className='absolute top-3 left-3 bg-slate-900 text-white text-sm font-black px-2 py-1 rounded-lg shadow-sm z-10'>
 						-{discount}%
 					</div>
 				)}

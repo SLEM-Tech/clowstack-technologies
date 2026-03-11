@@ -17,11 +17,12 @@ const SearchDataOutput = ({ data, isloading }: SearchDataOutputProps) => {
 			oldAmount={product?.regular_price}
 			newAmount={product?.price}
 			description={product?.name}
+			product={product}
 		/>
 	));
 
 	return (
-		<div className='flex gap-4 flex-wrap justify-center sm:justify-start'>
+		<div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 w-full'>
 			{productCards}
 		</div>
 	);

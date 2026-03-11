@@ -14,6 +14,10 @@ import { fetchExchangeRate } from "@utils/endpoints";
 import { setBaseCurrency, setExchangeRate } from "../Redux/Currency";
 import FormToast from "../Reusables/Toast/SigninToast";
 import useToken from "../hooks/useToken";
+import { setWishlistOpen } from "../Redux/Wishlist";
+import { setCompareOpen } from "../Redux/Compare";
+import { useSelector } from "react-redux";
+import { RootState } from "../set-up/redux/root-reducer";
 
 import { Menu, Transition } from "@headlessui/react";
 import {
@@ -45,6 +49,8 @@ const Header = () => {
 
 	const { baseCurrency } = useAppSelector((state) => state.currency);
 	const [isPending, startTransition] = useTransition();
+	const wishlistCount = useSelector((state: RootState) => state.wishlist.items.length);
+	const compareCount = useSelector((state: RootState) => state.compare.items.length);
 
 	const [isCartOpen, setIsCartOpen] = useState(false);
 	const [drawerVisible, setDrawerVisible] = useState(false);
@@ -112,14 +118,18 @@ const Header = () => {
 						{[
 							
 							{ label: "My Account", href: "/user/dashboard" },
-							{ label: "Wishlist", href: "/user/my-orders" },
+							{ label: "Wishlist", href: "#" },
 						].map((item) => (
 							<Link
 								key={item.label}
 								href={item.href}
+								onClick={item.label === "Wishlist" ? (e) => { e.preventDefault(); dispatch(setWishlistOpen(true)); } : undefined}
 								className='px-3 first:pl-0 hover:text-shop transition-colors'
 							>
 								{item.label}
+								{item.label === "Wishlist" && wishlistCount > 0 && (
+									<span className='ml-1 text-shop font-semibold'>({wishlistCount})</span>
+								)}
 							</Link>
 						))}
 					</div>
@@ -228,16 +238,36 @@ const Header = () => {
 						{/* Action icons */}
 						<div className='flex items-center gap-6'>
 							{/* Compare */}
-							<button className='flex flex-col items-center gap-0.5 group cursor-pointer'>
-								<BiTransfer className='text-2xl text-gray-500 group-hover:text-shop transition-colors' />
+							<button
+								onClick={() => compareCount >= 2 && dispatch(setCompareOpen(true))}
+								className='flex flex-col items-center gap-0.5 group cursor-pointer relative'
+							>
+								<div className='relative'>
+									<BiTransfer className='text-2xl text-gray-500 group-hover:text-shop transition-colors' />
+									{compareCount > 0 && (
+										<span className='absolute -top-2 -right-2 size-4 bg-shop text-white text-[9px] font-black flex items-center justify-center rounded-full'>
+											{compareCount}
+										</span>
+									)}
+								</div>
 								<span className='text-[10px] text-gray-400 group-hover:text-shop transition-colors'>
 									Compare
 								</span>
 							</button>
 
 							{/* Wishlist */}
-							<button className='flex flex-col items-center gap-0.5 group cursor-pointer'>
-								<FiHeart className='text-2xl text-gray-500 group-hover:text-shop transition-colors' />
+							<button
+								onClick={() => dispatch(setWishlistOpen(true))}
+								className='flex flex-col items-center gap-0.5 group cursor-pointer relative'
+							>
+								<div className='relative'>
+									<FiHeart className='text-2xl text-gray-500 group-hover:text-shop transition-colors' />
+									{wishlistCount > 0 && (
+										<span className='absolute -top-2 -right-2 size-4 bg-shop text-white text-[9px] font-black flex items-center justify-center rounded-full'>
+											{wishlistCount}
+										</span>
+									)}
+								</div>
 								<span className='text-[10px] text-gray-400 group-hover:text-shop transition-colors'>
 									Wishlist
 								</span>

@@ -99,6 +99,7 @@ const RelatedProductsSection = ({
 										oldAmount={product?.regular_price}
 										newAmount={product?.price}
 										description={product?.name}
+										product={product}
 									/>
 								))}
 					</div>

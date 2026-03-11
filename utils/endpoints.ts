@@ -4,34 +4,27 @@ import {
 	Alliancepay_Public_key,
 	Encryption_Checkout_Url,
 	ENCRYPTION_KEY,
-	WC_ConsumerKey,
-	WC_consumerSecret,
-	WC_URL,
-	WP_API_URL,
 } from "./lib/data";
 
 export const getCountriesApi = async () => {
 	return axios.get(`/countries`);
 };
 
+// ── Auth endpoints now served by our internal Next.js API ────────────────────
 export const login = async (data: any) =>
-	axios.post(`${WP_API_URL}/custom-login/v1/login`, data);
+	axios.post(`/api/customer/login`, data);
 
 export const getBankAccounts = async () =>
-	axios.get(`${WP_API_URL}/custom/v1/bank-accounts`);
-
-// export const login = async (data: any) => {
-// 	return axios.post(`https://dev.api.rumer.ng/auth/login`, data);
-// };
+	axios.get(`/api/setting/global/all`);
 
 export const forgotPassword = async (data: any) =>
-	axios.post(`${WP_API_URL}/custom-login/v1/forgot-password`, data);
+	axios.post(`/api/customer/forgot-password`, data);
 
 export const register = async (data: any) =>
-	axios.post(`${WP_API_URL}/user-registration/v1/register`, data);
+	axios.post(`/api/customer/verify-email`, data);
 
 export const changeWpPassword = async (data: any) =>
-	axios.post(`${WP_API_URL}/custom-login/v1/change-password`, data);
+	axios.post(`/api/customer/change-password`, data);
 
 // Test encryption
 // export const encryptOrderData = async (data: any) =>
@@ -87,16 +80,26 @@ export const payOrder = async (data: any) =>
 		},
 	});
 
-export const WooCommerceServer = axios.create({
-	baseURL: `${WC_URL}/wp-json/wc/v3`,
-	headers: {
-		"Content-Type": "application/json",
+// ── WooCommerceServer replaced by internal API calls ────────────────────────
+// Used in generateStaticParams at build time (server-side)
+export const WooCommerceServer = {
+	async get(endpoint: string): Promise<{ data: any }> {
+		const base =
+			process.env.NEXT_PUBLIC_BASE_URL ||
+			`http://localhost:${process.env.PORT || 3000}`;
+
+		let path = "/api/products";
+		if (endpoint.includes("categories")) path = "/api/category";
+
+		try {
+			const res = await fetch(`${base}${path}`, { cache: "no-store" });
+			if (!res.ok) return { data: [] };
+			return { data: await res.json() };
+		} catch {
+			return { data: [] };
+		}
 	},
-	auth: {
-		username: WC_ConsumerKey, // Use environment variables
-		password: WC_consumerSecret, // Use environment variables
-	},
-});
+};
 
 export async function fetchExchangeRate(from: string, to: string) {
 	const res = await fetch(
