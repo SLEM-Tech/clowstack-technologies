@@ -21,6 +21,21 @@ export async function GET(req: NextRequest) {
   }
 }
 
+export async function DELETE(req: NextRequest) {
+  const admin = await requireAdmin(req);
+  if (!admin) return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+
+  try {
+    await query(`DELETE FROM ${T.productCategories} WHERE true`);
+    await query(`DELETE FROM ${T.categories} WHERE true`);
+
+    return NextResponse.json({ message: "All categories truncated successfully" });
+  } catch (error) {
+    console.error("Admin truncate categories error:", error);
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+  }
+}
+
 export async function POST(req: NextRequest) {
   const admin = await requireAdmin(req);
   if (!admin) return NextResponse.json({ message: "Forbidden" }, { status: 403 });

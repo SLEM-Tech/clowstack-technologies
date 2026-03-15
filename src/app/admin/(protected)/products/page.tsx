@@ -14,6 +14,7 @@ export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [truncateOpen, setTruncateOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-products", page, search, status],
@@ -27,6 +28,14 @@ export default function ProductsPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-products"] });
       setDeleteId(null);
+    },
+  });
+
+  const truncateMutation = useMutation({
+    mutationFn: () => fetch("/api/admin/products", { method: "DELETE" }).then((r) => r.json()),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-products"] });
+      setTruncateOpen(false);
     },
   });
 
@@ -91,12 +100,20 @@ export default function ProductsPage() {
             <option value="trash">Trash</option>
           </select>
         </div>
-        <Link
-          href="/admin/products/new"
-          className="px-4 py-2 bg-[#3DBD7F] text-white rounded-lg text-sm font-semibold hover:bg-[#2ea86f] whitespace-nowrap"
-        >
-          + Add Product
-        </Link>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setTruncateOpen(true)}
+            className="px-4 py-2 bg-red-50 text-red-600 border border-red-100 rounded-lg text-sm font-semibold hover:bg-red-100 whitespace-nowrap"
+          >
+            Truncate All
+          </button>
+          <Link
+            href="/admin/products/new"
+            className="px-4 py-2 bg-[#3DBD7F] text-white rounded-lg text-sm font-semibold hover:bg-[#2ea86f] whitespace-nowrap"
+          >
+            + Add Product
+          </Link>
+        </div>
       </div>
 
       <AdminTable columns={columns} data={data?.products ?? []} loading={isLoading} />
@@ -116,6 +133,16 @@ export default function ProductsPage() {
         loading={deleteMutation.isPending}
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
         onCancel={() => setDeleteId(null)}
+      />
+
+      <ConfirmModal
+        isOpen={truncateOpen}
+        title="Truncate All Products"
+        message="This will permanently delete ALL products, images, and attributes. This action cannot be undone."
+        confirmLabel="Truncate All"
+        loading={truncateMutation.isPending}
+        onConfirm={() => truncateMutation.mutate()}
+        onCancel={() => setTruncateOpen(false)}
       />
     </div>
   );

@@ -24,6 +24,7 @@ export default function CategoriesPage() {
   const [form, setForm] = useState(EMPTY);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [truncateOpen, setTruncateOpen] = useState(false);
   const [formError, setFormError] = useState("");
   const [images, setImages] = useState<string[]>([]);
 
@@ -63,6 +64,14 @@ export default function CategoriesPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-categories"] });
       setDeleteId(null);
+    },
+  });
+
+  const truncateMutation = useMutation({
+    mutationFn: () => fetch("/api/admin/categories", { method: "DELETE" }).then((r) => r.json()),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-categories"] });
+      setTruncateOpen(false);
     },
   });
 
@@ -198,7 +207,15 @@ export default function CategoriesPage() {
       </div>
 
       {/* Table */}
-      <div className="lg:col-span-2">
+      <div className="lg:col-span-2 space-y-3">
+        <div className="flex justify-end">
+          <button
+            onClick={() => setTruncateOpen(true)}
+            className="px-4 py-2 bg-red-50 text-red-600 border border-red-100 rounded-lg text-sm font-semibold hover:bg-red-100 whitespace-nowrap"
+          >
+            Truncate All
+          </button>
+        </div>
         <AdminTable columns={columns} data={categories} loading={isLoading} />
       </div>
 
@@ -210,6 +227,16 @@ export default function CategoriesPage() {
         loading={deleteMutation.isPending}
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
         onCancel={() => setDeleteId(null)}
+      />
+
+      <ConfirmModal
+        isOpen={truncateOpen}
+        title="Truncate All Categories"
+        message="This will permanently delete ALL categories and remove all product-category links. This action cannot be undone."
+        confirmLabel="Truncate All"
+        loading={truncateMutation.isPending}
+        onConfirm={() => truncateMutation.mutate()}
+        onCancel={() => setTruncateOpen(false)}
       />
     </div>
   );
